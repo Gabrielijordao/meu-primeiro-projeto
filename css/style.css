@@ -92,6 +92,7 @@ line-height: 1.6;
     font-size: 1rem;
     transition: border-color 0.2s;
 
+
 }
 
 .search-section input:focus{
@@ -197,6 +198,7 @@ background: var(--color-primary-dark);
  .header{
     text-aling: left;
  }
+
 
 }
 
