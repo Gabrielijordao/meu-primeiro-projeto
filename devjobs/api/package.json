@@ -1,0 +1,28 @@
+{
+  "name": "meu-primeiro-projeto",
+  "version": "1.0.0",
+  "description": "Grupo: Gabrieli Souza Jordão;\r Ester Araujo da Silva;\r João Victor Costa Silva;",
+  "main": "Teste.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabrielijordao/meu-primeiro-projeto.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Gabrielijordao/meu-primeiro-projeto/issues"
+  },
+  "homepage": "https://github.com/Gabrielijordao/meu-primeiro-projeto#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
