@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
@@ -11,7 +12,8 @@
   },
   "dependencies": {
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
@@ -19,5 +21,9 @@
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.90.0",
     "vite": "^8.3.6"
+=======
+  "dependencies": {
+    "bcryptjs": "^3.0.3"
+>>>>>>> d6e4af293bc1f1efc7f111e8a7f8c1ac50e3eeef
   }
 }
