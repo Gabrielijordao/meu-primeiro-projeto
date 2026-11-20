@@ -1,11 +1,9 @@
-
 const { Router } = require('express');
 const router = Router();
 
 const db = require('../database/db');
 const auth = require('../middleware/auth.middleware');
 
-// LISTAR TODAS AS VAGAS
 router.get('/', (req, res) => {
   const vagas = db.prepare(`
     SELECT v.*, e.nome AS empresa_nome
@@ -14,49 +12,31 @@ router.get('/', (req, res) => {
     ORDER BY v.created_at DESC
   `).all();
 
-  return res.json(vagas);
+  res.json(vagas);
 });
 
-// CRIAR VAGA - REQUER LOGIN
 router.post('/', auth, (req, res) => {
-  const {
-    titulo, tipo, tecnologias,
-    salario, cep, cidade, estado, descricao
-  } = req.body || {};
+  // 1. Pega o ID da empresa logada direto do token JWT
+  const empresa_id = req.empresa.id; 
+  
+  // 2. Não extrai mais o empresa_id do body
+  const { titulo, tipo, tecnologias, salario, cep, cidade, estado, descricao } = req.body;
 
-  const empresa_id = req.empresa.id;
-
+  // 3. Valida apenas os campos do body
   if (!titulo || !tipo) {
-    return res.status(400).json({
-      erro: 'Campos obrigatórios: titulo e tipo'
-    });
+    return res.status(400).json({ erro: 'Campos obrigatórios: titulo, tipo' });
   }
 
   const result = db.prepare(`
-    INSERT INTO vagas (
-      titulo, empresa_id, tipo,
-      tecnologias, salario, cep,
-      cidade, estado, descricao
-    )
+    INSERT INTO vagas (titulo, empresa_id, tipo, tecnologias, salario, cep, cidade, estado, descricao)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    titulo, empresa_id, tipo,
-    tecnologias || '',
-    salario || '',
-    cep || '',
-    cidade || '',
-    estado || '',
-    descricao || ''
-  );
+  `).run(titulo, empresa_id, tipo, tecnologias || '', salario || '', cep || '', cidade || '', estado || '', descricao || '');
 
-  const vaga = db.prepare(
-    'SELECT * FROM vagas WHERE id = ?'
-  ).get(result.lastInsertRowid);
-
-  return res.status(201).json(vaga);
+  const vaga = db.prepare('SELECT * FROM vagas WHERE id = ?').get(result.lastInsertRowid);
+  res.status(201).json(vaga);
 });
 
-// BUSCAR VAGA POR ID
+
 router.get('/:id', (req, res) => {
   const vaga = db.prepare(`
     SELECT v.*, e.nome AS empresa_nome
@@ -66,33 +46,21 @@ router.get('/:id', (req, res) => {
   `).get(req.params.id);
 
   if (!vaga) {
-    return res.status(404).json({
-      erro: 'Vaga não encontrada'
-    });
+    return res.status(404).json({ erro: 'Vaga não encontrada' });
   }
 
-  return res.json(vaga);
+  res.json(vaga);
 });
 
-// ATUALIZAR VAGA - REQUER LOGIN
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', (req, res) => {
   const { id } = req.params;
-
-  const existente = db.prepare(`
-    SELECT id FROM vagas
-    WHERE id = ? AND empresa_id = ?
-  `).get(id, req.empresa.id);
+  const existente = db.prepare('SELECT id FROM vagas WHERE id = ?').get(id);
 
   if (!existente) {
-    return res.status(404).json({
-      erro: 'Vaga não encontrada ou sem permissão'
-    });
+    return res.status(404).json({ erro: 'Vaga não encontrada' });
   }
 
-  const {
-    titulo, tipo, tecnologias,
-    salario, cep, cidade, estado, descricao
-  } = req.body || {};
+  const { titulo, tipo, tecnologias, salario, cep, cidade, estado, descricao } = req.body;
 
   db.prepare(`
     UPDATE vagas SET
@@ -104,43 +72,25 @@ router.put('/:id', auth, (req, res) => {
       cidade = COALESCE(?, cidade),
       estado = COALESCE(?, estado),
       descricao = COALESCE(?, descricao)
-    WHERE id = ? AND empresa_id = ?
-  `).run(
-    titulo ?? null,
-    tipo ?? null,
-    tecnologias ?? null,
-    salario ?? null,
-    cep ?? null,
-    cidade ?? null,
-    estado ?? null,
-    descricao ?? null,
-    id,
-    req.empresa.id
-  );
+    WHERE id = ?
+  `).run(titulo, tipo, tecnologias, salario, cep, cidade, estado, descricao, id);
 
-  const atualizada = db.prepare(
-    'SELECT * FROM vagas WHERE id = ?'
-  ).get(id);
-
-  return res.json(atualizada);
+  const atualizada = db.prepare('SELECT * FROM vagas WHERE id = ?').get(id);
+  res.json(atualizada);
 });
 
-// EXCLUIR VAGA - REQUER LOGIN
 router.delete('/:id', auth, (req, res) => {
   const { id } = req.params;
+  const empresa_id = req.empresa.id; // ID da empresa logada
 
-  const result = db.prepare(`
-    DELETE FROM vagas
-    WHERE id = ? AND empresa_id = ?
-  `).run(id, req.empresa.id);
+  // Verifica tanto o ID da vaga quanto o ID da empresa dona da vaga
+  const result = db.prepare('DELETE FROM vagas WHERE id = ? AND empresa_id = ?').run(id, empresa_id);
 
   if (result.changes === 0) {
-    return res.status(404).json({
-      erro: 'Vaga não encontrada ou sem permissão'
-    });
+    return res.status(404).json({ erro: 'Vaga não encontrada ou você não tem permissão para excluí-la' });
   }
 
-  return res.status(204).send();
+  res.status(204).send();
 });
 
 module.exports = router;

@@ -6,12 +6,9 @@ const db = require('../database/db');
 const router = Router();
 
 router.post('/login', (req, res) => {
-  const { email, senha } = req.body || {};
-  if (typeof email !== 'string' || typeof senha !== 'string' || !email.trim() || !senha) {
-    return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
-  }
+  const { email, senha } = req.body;
+  const empresa = db.prepare('SELECT * FROM empresas WHERE email = ?').get(email);
 
-  const empresa = db.prepare('SELECT * FROM empresas WHERE email = ?').get(email.trim());
   if (!empresa || !bcrypt.compareSync(senha, empresa.senha_hash)) {
     return res.status(401).json({ erro: 'Email ou senha inválidos' });
   }
@@ -22,7 +19,7 @@ router.post('/login', (req, res) => {
     { expiresIn: '8h' }
   );
 
-  return res.json({ token, empresa: { id: empresa.id, nome: empresa.nome, email: empresa.email } });
+  res.json({ token, empresa: { id: empresa.id, nome: empresa.nome, email: empresa.email } });
 });
 
 module.exports = router;

@@ -22,7 +22,7 @@ function filtrarVagas(termo) {
   });
 }
 
-export default function App() {
+export default function Home() {
   const [busca, setBusca] = useState('');
   const vagasFiltradas = filtrarVagas(busca);
 
@@ -32,27 +32,22 @@ export default function App() {
 
   return (
     <>
-      <Header />
-      <main className="main">
-        <SearchBar value={busca} onChange={setBusca} />
-
-        { <section className="jobs-section container">
-          <h2 className="sr-only">Lista de vagas</h2>
-          <p className="result-count" aria-live="polite">
-            {contagem}
-          </p>
-          <div className="jobs-grid">
-            {vagasFiltradas.length === 0 ? (
-              <p className="empty-msg">Nenhuma vaga encontrada.</p>
-            ) : (
-              vagasFiltradas.map((vaga) => (
-                <JobCard key={vaga.id} vaga={vaga} />
-              ))
-            )}
-          </div>
-        </section>}
-      </main>
-      <Footer />
+      <SearchBar value={busca} onChange={setBusca} />
+      <section className="jobs-section">
+        <h2 className="sr-only">Lista de vagas</h2>
+        <p className="result-count" aria-live="polite">
+          {contagem}
+        </p>
+        <div className="jobs-grid">
+          {vagasFiltradas.length === 0 ? (
+            <p className="empty-msg">Nenhuma vaga encontrada.</p>
+          ) : (
+            vagasFiltradas.map((vaga) => (
+              <JobCard key={vaga.id} vaga={vaga} />
+            ))
+          )}
+        </div>
+      </section>
     </>
   );
 }
