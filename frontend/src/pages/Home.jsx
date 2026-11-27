@@ -1,34 +1,34 @@
-import { useState } from 'react';
-import SearchBar from '../components/SearchBar';
+import { useEffect, useState } from 'react';
 import JobCard from '../components/JobCard';
-import { vagasMock } from '../data/vagasMock';
-
-function filtrarVagas(termo) {
-  const busca = termo.trim().toLowerCase();
-  if (!busca) return vagasMock;
-
-  return vagasMock.filter((vaga) => {
-    const texto = [
-      vaga.titulo,
-      vaga.empresa_nome,
-      vaga.cidade,
-      vaga.estado,
-      ...vaga.tecnologias.split(','),
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    return texto.includes(busca);
-  });
-}
+import SearchBar from '../components/SearchBar';
+import { apiFetch } from '../services/api';
 
 export default function Home() {
+  const [vagas, setVagas] = useState([]);
   const [busca, setBusca] = useState('');
-  const vagasFiltradas = filtrarVagas(busca);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState('');
 
-  const contagem = !busca.trim()
-    ? `${vagasFiltradas.length} vagas disponíveis`
-    : `${vagasFiltradas.length} vaga(s) encontrada(s) para "${busca}"`;
+  useEffect(() => {
+    apiFetch('/api/vagas')
+      .then((data) => setVagas(data))
+      .catch((err) => setErro(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const termo = busca.trim().toLowerCase();
+  const filtradas = termo
+    ? vagas.filter((v) =>
+        [v.titulo, v.empresa_nome, v.tecnologias].join(' ').toLowerCase().includes(termo)
+      )
+    : vagas;
+
+  if (loading) return <p>Carregando vagas...</p>;
+  if (erro) return <p role="alert">Erro: {erro}</p>;
+
+  const contagem = !termo
+    ? `${filtradas.length} vagas disponíveis`
+    : `${filtradas.length} vaga(s) encontrada(s) para "${busca}"`;
 
   return (
     <>
@@ -39,12 +39,10 @@ export default function Home() {
           {contagem}
         </p>
         <div className="jobs-grid">
-          {vagasFiltradas.length === 0 ? (
+          {filtradas.length === 0 ? (
             <p className="empty-msg">Nenhuma vaga encontrada.</p>
           ) : (
-            vagasFiltradas.map((vaga) => (
-              <JobCard key={vaga.id} vaga={vaga} />
-            ))
+            filtradas.map((vaga) => <JobCard key={vaga.id} vaga={vaga} />)
           )}
         </div>
       </section>
